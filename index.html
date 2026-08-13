@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>𓃥 白六留言本</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700&family=Yuji+Boku&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cover-color: #2c3e50;
+      --cover-edge: #1a252f;
+      --paper-color: #fcfbf7;
+      --line-color: #cbd5e1;
+      --user-font-family: 'LXGW WenKai TC', 'DFKai-SB', 'BiauKai', cursive, serif;
+      --user-font-size: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at 50% 30%, #f1f5f9 0%, #cbd5e1 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    .scene {
+      perspective: 1600px;
+      -webkit-perspective: 1600px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100vw;
+      height: 78vh;
+      position: relative;
+    }
+
+    .notebook-scaler {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform: translateX(25%) scale(1.1); 
+      -webkit-transform: translateX(25%) scale(1.1);
+      transition: transform 0.4s ease;
+    }
+
+    @media (max-width: 600px) {
+      .notebook-scaler {
+        transform: translateX(25%) scale(0.85);
+        -webkit-transform: translateX(25%) scale(0.85);
+      }
+    }
+
+    .notebook {
+      position: relative;
+      width: 620px;
+      height: 480px;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      transform: rotateX(8deg) rotateY(0deg) rotateZ(0deg);
+      box-shadow: 0 30px 50px -10px rgba(15, 23, 42, 0.35);
+      transition: transform 0.5s ease;
+    }
+
+    /* 外殼 (z-index: 1) */
+    .hardcover {
+      position: absolute;
+      top: -10px;
+      bottom: -10px;
+      width: calc(50% + 12px);
+      background-color: var(--cover-color);
+      border-radius: 6px;
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.05), 0 8px 20px rgba(0,0,0,0.3);
+      z-index: 1;
+    }
+
+    .hardcover.left {
+      left: -12px;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      background: linear-gradient(90deg, var(--cover-edge) 0%, var(--cover-color) 10%, var(--cover-color) 98%, var(--cover-edge) 100%);
+    }
+
+    .hardcover.right {
+      right: -12px;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      background: linear-gradient(-90deg, var(--cover-edge) 0%, var(--cover-color) 10%, var(--cover-color) 98%, var(--cover-edge) 100%);
+    }
+
+    /* 中央立體書脊 (z-index: 2) */
+    .spine {
+      position: absolute;
+      top: -10px;
+      bottom: -10px;
+      left: 50%;
+      width: 20px;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, #1a252f 0%, #34495e 50%, #1a252f 100%);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+      z-index: 2;
+    }
+
+    /* 紙張側邊厚度 (z-index: 3) */
+    .paper-stack-left, .paper-stack-right {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 10px;
+      background: repeating-linear-gradient(180deg, #f8fafc 0px, #e2e8f0 1px, #f8fafc 2px);
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.2);
+      z-index: 3;
+    }
+    .paper-stack-left { left: -10px; border-radius: 2px 0 0 2px; }
+    .paper-stack-right { right: -10px; border-radius: 0 2px 2px 0; }
+
+    .page-date-tag {
+      position: absolute;
+      top: 12px;
+      left: 35px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--line-color);
+      user-select: none;
+      letter-spacing: 0.5px;
+      z-index: 8;
+    }
+
+    /* 底層第一頁文字頁 (z-index: 4) */
+    .page-sheet.left-base {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 310px;
+      height: 100%;
+      background-color: var(--paper-color);
+      background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+      background-size: 100% 40px;
+      padding: 45px 25px 35px 35px;
+      overflow: hidden;
+      font-family: var(--user-font-family);
+      font-size: var(--user-font-size);
+      color: #1e293b;
+      line-height: 40px;
+      word-break: break-all;
+      border-radius: 4px 0 0 4px;
+      box-shadow: inset -15px 0 20px -10px rgba(0,0,0,0.15);
+      z-index: 4;
+    }
+
+    /* 獨立透明書籤頁 (z-index: 6) */
+    .page-sheet.transparent-ribbon-page {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 310px;
+      height: 100%;
+      background: transparent;
+      border-radius: 4px 0 0 4px;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .transparent-ribbon-page .ribbon-satin {
+      position: absolute;
+      top: -10px;
+      right: 30px;
+      width: 12px;
+      height: calc(100% + 40px);
+      background: linear-gradient(90deg, #a93226 0%, #c0392b 50%, #922b21 100%);
+      border-radius: 0 0 3px 3px;
+      box-shadow: 3px 5px 8px rgba(0,0,0,0.25);
+    }
+
+    /* 壓在透明頁上面的「實體不透明新左頁」(z-index: 10) */
+    .page-sheet.left-top {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 310px;
+      height: 100%;
+      background-color: var(--paper-color);
+      background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+      background-size: 100% 40px;
+      padding: 45px 25px 35px 35px;
+      overflow: hidden;
+      font-family: var(--user-font-family);
+      font-size: var(--user-font-size);
+      color: #1e293b;
+      line-height: 40px;
+      word-break: break-all;
+      border-radius: 4px 0 0 4px;
+      box-shadow: inset -15px 0 20px -10px rgba(0,0,0,0.15);
+      z-index: 10;
+      display: none;
+    }
+
+    /* 右底頁 (z-index: 4) */
+    .page-sheet.right-base {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 310px;
+      height: 100%;
+      background-color: var(--paper-color);
+      background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+      background-size: 100% 40px;
+      border-radius: 0 4px 4px 0;
+      box-shadow: inset 15px 0 20px -10px rgba(0,0,0,0.15);
+      z-index: 4;
+    }
+
+    .page-sheet.left-base::after, .page-sheet.left-top::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 35px;
+      height: 100%;
+      background: linear-gradient(to left, rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.04) 40%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .page-sheet.right-base::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 35px;
+      height: 100%;
+      background: linear-gradient(to right, rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.04) 40%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* GPU 加速 60fps 3D 翻頁器 (z-index: 20) */
+    .flip-container {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 310px;
+      height: 100%;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      transform-origin: left center;
+      -webkit-transform-origin: left center;
+      will-change: transform;
+      z-index: 20;
+      display: none;
+      transition: transform 0.85s cubic-bezier(0.25, 1, 0.35, 1);
+      -webkit-transition: -webkit-transform 0.85s cubic-bezier(0.25, 1, 0.35, 1);
+    }
+
+    .flip-face {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--paper-color);
+      background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+      background-size: 100% 40px;
+      padding: 45px 25px 35px 35px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      overflow: hidden;
+      font-family: var(--user-font-family);
+      font-size: var(--user-font-size);
+      color: #1e293b;
+      line-height: 40px;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+    }
+
+    .flip-face.front {
+      z-index: 2;
+      border-radius: 0 4px 4px 0;
+      box-shadow: inset 15px 0 20px -10px rgba(0,0,0,0.1);
+    }
+
+    .flip-face.back {
+      transform: rotateY(180deg) translateZ(0);
+      -webkit-transform: rotateY(180deg) translateZ(0);
+      border-radius: 4px 0 0 4px;
+      box-shadow: inset -15px 0 20px -10px rgba(0,0,0,0.1);
+    }
+
+    .shading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.85s ease;
+      background: linear-gradient(90deg, rgba(0,0,0,0.2) 0%, transparent 80%);
+    }
+
+    .flip-container.flipped {
+      transform: rotateY(-180deg);
+      -webkit-transform: rotateY(-180deg);
+    }
+
+    .flip-container.flipped .shading {
+      opacity: 0.3;
+    }
+
+    /* 控制按鈕列 */
+    .controls {
+      position: fixed;
+      bottom: 25px;
+      display: flex;
+      gap: 10px;
+      z-index: 40;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: #f8fafc;
+      transform: translateY(-1px);
+    }
+
+    .settings-panel {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      z-index: 100;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .settings-header {
+      padding: 10px 14px;
+      background: #f8fafc;
+      font-weight: 600;
+      color: #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .settings-panel.open .settings-header {
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .settings-body {
+      padding: 14px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .settings-panel.open .settings-body {
+      display: flex;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .form-control {
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 85px;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-header" onclick="toggleSettings()">
+      <span>⚙️ 𓃥 白六留言本設定</span>
+      <span id="toggleIcon">▼</span>
+    </div>
+    <div class="settings-body">
+      <div class="form-group">
+        <label for="textInput">留言多行內容 (每行代表一個左頁)：</label>
+        <textarea id="textInput" class="form-control" onchange="updateNotebookContent()">第一行留言：歡迎來到 𓃥 白六留言本。\n繁體全字庫字體已更新。
+第二行留言：飛舞的文字在歲月中沉澱。\n享受靜謐優雅的閱讀體驗。
+第三行留言：寫下屬於你的每一段故事。\n讓記憶隨書頁溫柔翻動。</textarea>
+      </div>
+      <div class="form-group">
+        <label for="fontSelect">選擇中文字體 (繁體全字庫)：</label>
+        <select id="fontSelect" class="form-control" onchange="updateStyle()">
+          <option value="'LXGW WenKai TC', 'DFKai-SB', 'BiauKai', cursive, serif">霞鶖文楷 / 繁體標準楷書</option>
+          <option value="'Yuji Boku', 'Zhi Mang Xing', cursive">Yuji Boku / 柔和行書風</option>
+          <option value="'Noto Serif TC', serif">思源宋體 (Noto Serif)</option>
+          <option value="'Noto Sans TC', sans-serif">思源黑體 (Noto Sans)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="fontSizeInput">字體大小 (px)：</label>
+        <input type="number" id="fontSizeInput" class="form-control" value="24" min="14" max="36" onchange="updateStyle()">
+      </div>
+    </div>
+  </div>
+
+  <div class="scene">
+    <div class="notebook-scaler" id="scaler">
+      <div class="notebook" id="notebook">
+        <div class="hardcover left"></div>
+        <div class="hardcover right"></div>
+        <div class="spine"></div>
+
+        <div class="paper-stack-left"></div>
+        <div class="paper-stack-right"></div>
+
+        <div class="page-sheet left-base" id="leftBasePage"></div>
+
+        <div class="page-sheet transparent-ribbon-page" id="transparentRibbonPage">
+          <div class="ribbon-satin"></div>
+        </div>
+
+        <div class="page-sheet left-top" id="leftTopPage"></div>
+
+        <div class="page-sheet right-base"></div>
+
+        <div class="flip-container" id="flipContainer">
+          <div class="flip-face front" id="flipFront">
+            <div class="shading"></div>
+          </div>
+          <div class="flip-face back" id="flipBack">
+            <div class="shading"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="flipNext()">下一頁 ➔</button>
+    <button class="btn" onclick="flipPrev()">⬅ 上一頁</button>
+    <button class="btn" onclick="resetFirstPage()">⏮ 第一頁</button>
+    <button class="btn" onclick="togglePerspective()">切換視角</button>
+  </div>
+
+  <script>
+    let lines = [];
+    let currentPageIndex = 0;
+    let isFlipping = false;
+    let isTilted = false;
+
+    const leftBasePage = document.getElementById('leftBasePage');
+    const leftTopPage = document.getElementById('leftTopPage');
+    const transparentRibbonPage = document.getElementById('transparentRibbonPage');
+    const flipContainer = document.getElementById('flipContainer');
+    const flipFront = document.getElementById('flipFront');
+    const flipBack = document.getElementById('flipBack');
+    const notebook = document.getElementById('notebook');
+
+    function getTodayFormattedDate() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const date = String(today.getDate()).padStart(2, '0');
+      
+      const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+      const weekDayStr = weekDays[today.getDay()];
+
+      return `${year}/${month}/${date} ${weekDayStr}`;
+    }
+
+    function formatText(text) {
+      if (!text) return '';
+      const dateHtml = `<div class="page-date-tag">${getTodayFormattedDate()}</div>`;
+      return dateHtml + text.replace(/\\n/g, '<br>');
+    }
+
+    function updateNotebookContent() {
+      const rawText = document.getElementById('textInput').value;
+      lines = rawText.split('\n').filter(line => line.trim() !== '');
+      if (lines.length === 0) lines = ["（無內容）"];
+
+      leftBasePage.innerHTML = formatText(lines[0]);
+      
+      if (currentPageIndex === 0) {
+        transparentRibbonPage.style.display = 'block';
+        leftTopPage.style.display = 'none';
+      } else {
+        transparentRibbonPage.style.display = 'block'; 
+        leftTopPage.style.display = 'block';
+        leftTopPage.innerHTML = formatText(lines[currentPageIndex]);
+      }
+    }
+
+    function updateStyle() {
+      const fontFamily = document.getElementById('fontSelect').value;
+      const fontSize = document.getElementById('fontSizeInput').value + 'px';
+
+      document.documentElement.style.setProperty('--user-font-family', fontFamily);
+      document.documentElement.style.setProperty('--user-font-size', fontSize);
+    }
+
+    function toggleSettings() {
+      const panel = document.getElementById('settingsPanel');
+      const icon = document.getElementById('toggleIcon');
+      panel.classList.toggle('open');
+      icon.innerText = panel.classList.contains('open') ? '▲' : '▼';
+    }
+
+    function flipNext() {
+      if (isFlipping) return;
+      if (currentPageIndex >= lines.length - 1) return;
+
+      isFlipping = true;
+      const nextText = lines[currentPageIndex + 1];
+
+      flipFront.innerHTML = ''; 
+      flipBack.innerHTML = formatText(nextText);
+
+      flipContainer.style.transition = 'none';
+      flipContainer.style.webkitTransition = 'none';
+      flipContainer.classList.remove('flipped');
+      flipContainer.style.display = 'block';
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          flipContainer.style.transition = '';
+          flipContainer.style.webkitTransition = '';
+          flipContainer.classList.add('flipped');
+        });
+      });
+
+      setTimeout(() => {
+        leftTopPage.innerHTML = formatText(nextText);
+        leftTopPage.style.display = 'block';
+
+        flipContainer.style.display = 'none';
+        flipContainer.classList.remove('flipped');
+        currentPageIndex++;
+        isFlipping = false;
+      }, 860);
+    }
+
+    function flipPrev() {
+      if (isFlipping || currentPageIndex <= 0) return;
+
+      isFlipping = true;
+      const currentText = lines[currentPageIndex];     
+      const targetPrevText = lines[currentPageIndex - 1]; 
+
+      flipFront.innerHTML = formatText(targetPrevText); 
+      flipBack.innerHTML = formatText(currentText);
+
+      flipContainer.style.transition = 'none';
+      flipContainer.style.webkitTransition = 'none';
+      flipContainer.classList.add('flipped');
+      flipContainer.style.display = 'block';
+
+      if (currentPageIndex === 1) {
+        leftTopPage.style.display = 'none';
+      } else {
+        leftTopPage.innerHTML = formatText(targetPrevText);
+        leftTopPage.style.display = 'block';
+      }
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          flipContainer.style.transition = '';
+          flipContainer.style.webkitTransition = '';
+          flipContainer.classList.remove('flipped');
+        });
+      });
+
+      setTimeout(() => {
+        currentPageIndex--;
+        flipContainer.style.display = 'none';
+        isFlipping = false;
+      }, 860);
+    }
+
+    function resetFirstPage() {
+      if (isFlipping) return;
+      currentPageIndex = 0;
+      leftTopPage.style.display = 'none';
+      transparentRibbonPage.style.display = 'block';
+      leftBasePage.innerHTML = formatText(lines[0]);
+    }
+
+    function togglePerspective() {
+      isTilted = !isTilted;
+      notebook.style.transform = isTilted 
+        ? 'rotateX(32deg) rotateY(0deg) rotateZ(-3deg)' 
+        : 'rotateX(8deg) rotateY(0deg) rotateZ(0deg)';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateStyle();
+      updateNotebookContent();
+    });
+  </script>
+</body>
+</html>
